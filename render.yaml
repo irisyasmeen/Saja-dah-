@@ -2,9 +2,11 @@ services:
   - type: web
     name: tafsir-surah-as-sajdah
     runtime: static
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     staticPublishPath: ./dist
-    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
     headers:
       - path: /*
         name: X-Content-Type-Options
