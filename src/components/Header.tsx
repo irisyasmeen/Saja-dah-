@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, Moon, Sun } from 'lucide-react';
 import { AppLanguage } from '../types/tafsir';
 import { pickText } from '../utils/i18n';
 import { ShareButton } from './ShareButton';
@@ -8,12 +8,16 @@ interface HeaderProps {
   language: AppLanguage;
   notesCount: number;
   onOpenNotes: () => void;
+  isDark: boolean;
+  onToggleDark: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   language,
   notesCount,
   onOpenNotes,
+  isDark,
+  onToggleDark,
 }) => {
   const navLabels = {
     overview: pickText(language, {
@@ -116,8 +120,25 @@ export const Header: React.FC<HeaderProps> = ({
           </a>
         </nav>
 
-        {/* Zone 3: Share & Study Notes */}
+        {/* Zone 3: Theme, Share & Study Notes */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onToggleDark}
+            aria-label={pickText(language, {
+              en: isDark ? 'Switch to light theme' : 'Switch to dark theme',
+              id: isDark ? 'Ganti ke tema terang' : 'Ganti ke tema gelap',
+              ms: isDark ? 'Tukar ke tema cerah' : 'Tukar ke tema gelap',
+            })}
+            aria-pressed={isDark}
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-[#D6CEBE] dark:border-[#332E29] text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#F2EFE9] hover:bg-[#EAE4D7] dark:hover:bg-[#23201C] transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] dark:focus-visible:ring-[#D4AF37]"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Moon className="w-4 h-4" aria-hidden="true" />
+            )}
+          </button>
           <ShareButton
             language={language}
             variant="header"

@@ -511,6 +511,8 @@ export default function App() {
         language={language}
         notesCount={savedEntriesCount}
         onOpenNotes={() => setIsNotesOpen(true)}
+        isDark={isDark}
+        onToggleDark={() => setIsDark((prev) => !prev)}
       />
 
       <main className="flex-1">
