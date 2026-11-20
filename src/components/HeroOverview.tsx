@@ -6,6 +6,7 @@ import { pickText } from '../utils/i18n';
 
 interface HeroOverviewProps {
   language: AppLanguage;
+  onChangeLanguage: (lang: AppLanguage) => void;
   isPlayingSurah: boolean;
   onPlaySurah: () => void;
   onJumpToAyah: (ayahNumber: number) => void;
@@ -13,11 +14,18 @@ interface HeroOverviewProps {
 
 export const HeroOverview: React.FC<HeroOverviewProps> = ({
   language,
+  onChangeLanguage,
   isPlayingSurah,
   onPlaySurah,
   onJumpToAyah,
 }) => {
   const [imageError, setImageError] = useState(false);
+
+  const languageOptions: { id: AppLanguage; label: string }[] = [
+    { id: 'en', label: 'English' },
+    { id: 'ms', label: 'Bahasa Melayu' },
+    { id: 'id', label: 'Bahasa Indonesia' },
+  ];
 
   return (
     <section
@@ -29,21 +37,45 @@ export const HeroOverview: React.FC<HeroOverviewProps> = ({
           {/* Left Editorial Column */}
           <div className="lg:col-span-7 flex flex-col justify-between">
             <div>
-              {/* Quiet unboxed metadata line */}
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs uppercase tracking-widest text-[#78716C] dark:text-[#A8A29E] tabular-nums">
-                <span>
-                  {pickText(language, {
-                    en: 'Surah 32',
-                    id: 'Surah ke-32',
-                    ms: 'Surah ke-32',
-                  })}
-                </span>
-                <span aria-hidden="true">·</span>
-                <span>{SURAH_META.revelationPeriod[language]}</span>
-                <span aria-hidden="true">·</span>
-                <span>{SURAH_META.ayahCount} Ayat</span>
-                <span aria-hidden="true">·</span>
-                <span>{SURAH_META.juz}</span>
+              {/* Quiet unboxed metadata line + immediate above-the-fold language toggle */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs uppercase tracking-widest text-[#78716C] dark:text-[#A8A29E] tabular-nums">
+                  <span>
+                    {pickText(language, {
+                      en: 'Surah 32',
+                      id: 'Surah ke-32',
+                      ms: 'Surah ke-32',
+                    })}
+                  </span>
+                  <span aria-hidden="true">·</span>
+                  <span>{SURAH_META.revelationPeriod[language]}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{SURAH_META.ayahCount} Ayat</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{SURAH_META.juz}</span>
+                </div>
+
+                <div
+                  role="group"
+                  aria-label="Language toggle"
+                  className="flex items-center gap-1 p-1 rounded-lg bg-[#EAE4D7] dark:bg-[#23201C] shrink-0"
+                >
+                  {languageOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      aria-pressed={language === opt.id}
+                      onClick={() => onChangeLanguage(opt.id)}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                        language === opt.id
+                          ? 'bg-[#FBF9F5] dark:bg-[#121110] text-[#1E3A8A] dark:text-[#D4AF37] shadow-xs'
+                          : 'text-[#57534E] dark:text-[#A8A29E] hover:text-[#1C1917] dark:hover:text-[#F2EFE9]'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">

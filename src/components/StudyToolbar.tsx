@@ -19,8 +19,12 @@ interface StudyToolbarProps {
   onChangeSearchQuery: (q: string) => void;
   showTransliteration: boolean;
   onToggleTransliteration: () => void;
+  wordByWord: boolean;
+  onToggleWordByWord: () => void;
   arabicSize: 'md' | 'lg' | 'xl';
   onChangeArabicSize: (size: 'md' | 'lg' | 'xl') => void;
+  translationFontSize: number;
+  onChangeTranslationFontSize: (size: number) => void;
   isDark: boolean;
   onToggleDark: () => void;
 }
@@ -36,8 +40,12 @@ export const StudyToolbar: React.FC<StudyToolbarProps> = ({
   onChangeSearchQuery,
   showTransliteration,
   onToggleTransliteration,
+  wordByWord,
+  onToggleWordByWord,
   arabicSize,
   onChangeArabicSize,
+  translationFontSize,
+  onChangeTranslationFontSize,
   isDark,
   onToggleDark,
 }) => {
@@ -211,6 +219,24 @@ export const StudyToolbar: React.FC<StudyToolbarProps> = ({
               })}
             </button>
 
+            {/* Word-by-Word Viewing Mode Toggle */}
+            <button
+              type="button"
+              onClick={onToggleWordByWord}
+              aria-pressed={wordByWord}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
+                wordByWord
+                  ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#1E3A8A]/5 dark:border-[#D4AF37] dark:text-[#D4AF37] dark:bg-[#D4AF37]/10'
+                  : 'border-[#D6CEBE] dark:border-[#332E29] text-[#57534E] dark:text-[#A8A29E]'
+              }`}
+            >
+              {pickText(language, {
+                en: 'Word-by-Word',
+                id: 'Kata per Kata',
+                ms: 'Kata demi Kata',
+              })}
+            </button>
+
             {/* Arabic Font Size */}
             <div
               className="flex items-center gap-1 p-1 rounded-lg bg-[#EAE4D7] dark:bg-[#23201C]"
@@ -230,6 +256,44 @@ export const StudyToolbar: React.FC<StudyToolbarProps> = ({
                   {sz === 'md' ? 'A' : sz === 'lg' ? 'A+' : 'A++'}
                 </button>
               ))}
+            </div>
+
+            {/* Translation Font Size Slider */}
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#EAE4D7] dark:bg-[#23201C] shrink-0">
+              <label
+                htmlFor="translation-font-slider"
+                className="text-xs font-medium text-[#57534E] dark:text-[#A8A29E] whitespace-nowrap shrink-0"
+              >
+                {pickText(language, {
+                  en: 'Translation',
+                  id: 'Terjemahan',
+                  ms: 'Terjemahan',
+                })}
+              </label>
+              <input
+                id="translation-font-slider"
+                type="range"
+                min={14}
+                max={24}
+                step={1}
+                value={translationFontSize}
+                onChange={(e) =>
+                  onChangeTranslationFontSize(Number(e.target.value))
+                }
+                aria-label={pickText(language, {
+                  en: 'Adjust translation font size',
+                  id: 'Atur ukuran font terjemahan',
+                  ms: 'Laras saiz fon terjemahan',
+                })}
+                aria-valuemin={14}
+                aria-valuemax={24}
+                aria-valuenow={translationFontSize}
+                aria-valuetext={`${translationFontSize}px`}
+                className="w-20 sm:w-24 h-1.5 rounded-lg appearance-none cursor-pointer bg-[#D6CEBE] dark:bg-[#3A342E] accent-[#1E3A8A] dark:accent-[#D4AF37]"
+              />
+              <span className="text-xs font-medium text-[#1C1917] dark:text-[#F2EFE9] tabular-nums w-8 text-right shrink-0">
+                {translationFontSize}px
+              </span>
             </div>
 
             {/* Light / Dark Theme Toggle */}

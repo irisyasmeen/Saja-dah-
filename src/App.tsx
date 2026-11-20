@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header } from './components/Header';
 import { HeroOverview } from './components/HeroOverview';
+import { DailyReflectionSection } from './components/DailyReflectionSection';
 import { RecitationStudioSection } from './components/RecitationStudioSection';
 import { StudyToolbar } from './components/StudyToolbar';
 import { VerseCard } from './components/VerseCard';
@@ -9,6 +10,7 @@ import { HadithAndHistorySection } from './components/HadithAndHistorySection';
 import { ThematicArcSection } from './components/ThematicArcSection';
 import { SajdahGuideSection } from './components/SajdahGuideSection';
 import { NotesDrawer } from './components/NotesDrawer';
+import { QuickQuizModal } from './components/QuickQuizModal';
 import { AudioPlayerBar } from './components/AudioPlayerBar';
 import {
   getAudioUrlForAyah,
@@ -65,9 +67,39 @@ export default function App() {
   const [tafsirLens, setTafsirLens] = useState<TafsirLens>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showTransliteration, setShowTransliteration] = useState(true);
+  const [wordByWord, setWordByWord] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_PREFS_KEY);
+      if (saved) {
+        return Boolean(JSON.parse(saved).wordByWord);
+      }
+    } catch {
+      // Ignore
+    }
+    return false;
+  });
   const [arabicSize, setArabicSize] = useState<'md' | 'lg' | 'xl'>('lg');
+  const [translationFontSize, setTranslationFontSize] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_PREFS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (
+          typeof parsed.translationFontSize === 'number' &&
+          parsed.translationFontSize >= 14 &&
+          parsed.translationFontSize <= 24
+        ) {
+          return parsed.translationFontSize;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return 17;
+  });
   const [activeAyahNumber, setActiveAyahNumber] = useState<number>(1);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [quizAyahNumber, setQuizAyahNumber] = useState<number | null>(null);
 
   const [studyNotes, setStudyNotes] = useState<Record<number, VerseStudyNote>>(
     () => {
@@ -109,12 +141,12 @@ export default function App() {
     try {
       localStorage.setItem(
         STORAGE_PREFS_KEY,
-        JSON.stringify({ language, isDark })
+        JSON.stringify({ language, isDark, translationFontSize, wordByWord })
       );
     } catch {
       // Ignore
     }
-  }, [language, isDark]);
+  }, [language, isDark, translationFontSize, wordByWord]);
 
   // Persist notes
   useEffect(() => {
@@ -124,6 +156,34 @@ export default function App() {
       // Ignore
     }
   }, [studyNotes]);
+
+  // Support shared deep links (?ayah=15 or #ayah-15) on initial load
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const queryAyah = Number(params.get('ayah'));
+      const hashMatch = window.location.hash.match(/^#ayah-(\d+)$/);
+      const hashAyah = hashMatch ? Number(hashMatch[1]) : NaN;
+      const targetAyah =
+        Number.isInteger(queryAyah) && queryAyah >= 1 && queryAyah <= 30
+          ? queryAyah
+          : Number.isInteger(hashAyah) && hashAyah >= 1 && hashAyah <= 30
+            ? hashAyah
+            : null;
+
+      if (targetAyah !== null) {
+        setActiveAyahNumber(targetAyah);
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`ayah-${targetAyah}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+    } catch {
+      // Ignore URL parsing error
+    }
+  }, []);
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
@@ -456,9 +516,20 @@ export default function App() {
       <main className="flex-1">
         <HeroOverview
           language={language}
+          onChangeLanguage={setLanguage}
           isPlayingSurah={continuousMode && isPlaying}
           onPlaySurah={handlePlaySurah}
           onJumpToAyah={handleJumpToAyah}
+        />
+
+        <DailyReflectionSection
+          language={language}
+          playingAyah={playingAyah}
+          isPlaying={isPlaying}
+          studyNotes={studyNotes}
+          onPlayAyah={handlePlaySingleAyah}
+          onJumpToAyah={handleJumpToAyah}
+          onSaveNote={handleSaveNote}
         />
 
         <RecitationStudioSection
@@ -489,8 +560,12 @@ export default function App() {
           onToggleTransliteration={() =>
             setShowTransliteration((prev) => !prev)
           }
+          wordByWord={wordByWord}
+          onToggleWordByWord={() => setWordByWord((prev) => !prev)}
           arabicSize={arabicSize}
           onChangeArabicSize={setArabicSize}
+          translationFontSize={translationFontSize}
+          onChangeTranslationFontSize={setTranslationFontSize}
           isDark={isDark}
           onToggleDark={() => setIsDark((prev) => !prev)}
         />
@@ -561,7 +636,9 @@ export default function App() {
                       language={language}
                       tafsirLens={tafsirLens}
                       showTransliteration={showTransliteration}
+                      wordByWord={wordByWord}
                       arabicSize={arabicSize}
+                      translationFontSize={translationFontSize}
                       isActive={activeAyahNumber === ayah.number}
                       isCurrentlyPlaying={
                         playingAyah === ayah.number && isPlaying
@@ -572,6 +649,7 @@ export default function App() {
                       onToggleBookmark={handleToggleBookmark}
                       onSaveNote={handleSaveNote}
                       onJumpToSajdahGuide={handleJumpToSajdahGuide}
+                      onOpenQuiz={setQuizAyahNumber}
                     />
                   ))}
                 </div>
@@ -585,6 +663,7 @@ export default function App() {
                 activeAyah={activeAyah}
                 studyNotes={studyNotes}
                 onJumpToAyah={handleJumpToAyah}
+                onOpenQuiz={setQuizAyahNumber}
               />
             </div>
           </div>
@@ -671,6 +750,12 @@ export default function App() {
         onClose={() => setIsNotesOpen(false)}
         onJumpToAyah={handleJumpToAyah}
         onDeleteNoteOrBookmark={handleDeleteNoteOrBookmark}
+      />
+
+      <QuickQuizModal
+        ayahNumber={quizAyahNumber}
+        language={language}
+        onClose={() => setQuizAyahNumber(null)}
       />
     </div>
   );

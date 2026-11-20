@@ -10,6 +10,12 @@ export {
   SURAH_HADITHS,
   HISTORICAL_CONTEXT,
 } from './surahSajdahContext';
+export { getWordByWordTokens } from './surahSajdahWordByWord';
+export {
+  DAILY_REFLECTIONS,
+  getDailyAyahNumber,
+} from './surahSajdahReflections';
+export { VERSE_QUIZZES } from './surahSajdahQuiz';
 
 export const SURAH_SAJDAH_AYAHS: AyahTafsir[] = [
   ...SURAH_SAJDAH_PART_1,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { GraduationCap } from 'lucide-react';
 import { AppLanguage, AyahTafsir, VerseStudyNote } from '../types/tafsir';
 import { SURAH_SAJDAH_AYAHS } from '../data';
 import { pickText } from '../utils/i18n';
@@ -8,6 +9,7 @@ interface MarginCompanionProps {
   activeAyah: AyahTafsir;
   studyNotes: Record<number, VerseStudyNote>;
   onJumpToAyah: (ayahNumber: number) => void;
+  onOpenQuiz: (ayahNumber: number) => void;
 }
 
 export const MarginCompanion: React.FC<MarginCompanionProps> = ({
@@ -15,6 +17,7 @@ export const MarginCompanion: React.FC<MarginCompanionProps> = ({
   activeAyah,
   studyNotes,
   onJumpToAyah,
+  onOpenQuiz,
 }) => {
   return (
     <aside
@@ -88,6 +91,24 @@ export const MarginCompanion: React.FC<MarginCompanionProps> = ({
           <p className="mt-1.5 text-xs font-medium text-[#1C1917] dark:text-[#F2EFE9] tabular-nums">
             {activeAyah.crossReferences.join(' · ')}
           </p>
+        </div>
+
+        {/* Contextual Quick Quiz Trigger */}
+        <div className="mt-4 pt-4 border-t border-[#E5DFD3] dark:border-[#2C2824]">
+          <button
+            type="button"
+            onClick={() => onOpenQuiz(activeAyah.number)}
+            className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border border-[#D6CEBE] dark:border-[#332E29] bg-[#FBF9F5] dark:bg-[#121110] text-[#1E3A8A] dark:text-[#D4AF37] hover:bg-[#EAE4D7] dark:hover:bg-[#23201C] transition-colors tabular-nums"
+          >
+            <GraduationCap className="w-4 h-4 shrink-0" />
+            <span>
+              {pickText(language, {
+                en: `Quick Quiz · Ayah 32:${activeAyah.number} (3 Qs)`,
+                id: `Kuis Singkat · Ayat 32:${activeAyah.number} (3 Soal)`,
+                ms: `Kuiz Ringkas · Ayat 32:${activeAyah.number} (3 Soalan)`,
+              })}
+            </span>
+          </button>
         </div>
       </div>
 

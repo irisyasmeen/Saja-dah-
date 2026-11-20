@@ -23,6 +23,19 @@ export interface LocalizedText {
   ms: string;
 }
 
+export interface WordByWordToken {
+  arabic: string;
+  literal: LocalizedText;
+  rootInfo?: RootWord;
+}
+
+export interface VerseQuizQuestion {
+  question: LocalizedText;
+  options: [LocalizedText, LocalizedText, LocalizedText];
+  correctIndex: 0 | 1 | 2;
+  explanation: LocalizedText;
+}
+
 export interface AyahTafsir {
   number: number;
   section: Exclude<ThematicSectionId, 'all'>;

@@ -1,6 +1,8 @@
 import React from 'react';
+import { Mail } from 'lucide-react';
 import { AppLanguage } from '../types/tafsir';
 import { pickText } from '../utils/i18n';
+import { ShareButton } from './ShareButton';
 
 interface HeaderProps {
   language: AppLanguage;
@@ -48,6 +50,26 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="border-b border-[#E5DFD3] dark:border-[#2C2824] bg-[#FBF9F5]/95 dark:bg-[#121110]/95 backdrop-blur-sm">
+      {/* Slim Top Creator Attribution Bar */}
+      <div className="border-b border-[#E5DFD3]/80 dark:border-[#2C2824]/80 bg-[#F5F1E8] dark:bg-[#171512]">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-1.5 flex items-center justify-end gap-2 text-xs text-[#78716C] dark:text-[#A8A29E]">
+          <span>
+            {pickText(language, {
+              en: 'Creator:',
+              id: 'Pembuat:',
+              ms: 'Pencipta:',
+            })}
+          </span>
+          <a
+            href="mailto:drfendiameen@gmail.com"
+            className="inline-flex items-center gap-1.5 font-medium text-[#1E3A8A] dark:text-[#D4AF37] hover:underline underline-offset-4 transition-colors whitespace-nowrap"
+          >
+            <Mail className="w-3.5 h-3.5 shrink-0" />
+            <span>drfendiameen@gmail.com</span>
+          </a>
+        </div>
+      </div>
+
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-8">
         {/* Zone 1: Single text element wordmark */}
         <a
@@ -94,8 +116,22 @@ export const Header: React.FC<HeaderProps> = ({
           </a>
         </nav>
 
-        {/* Zone 3: 1 primary action */}
-        <div className="shrink-0">
+        {/* Zone 3: Share & Study Notes */}
+        <div className="flex items-center gap-2 shrink-0">
+          <ShareButton
+            language={language}
+            variant="header"
+            title={pickText(language, {
+              en: 'Tafsir Surah As-Sajdah (32:1–30)',
+              id: 'Tafsir Surah As-Sajdah (32:1–30)',
+              ms: 'Tafsir Surah As-Sajdah (32:1–30)',
+            })}
+            shareText={pickText(language, {
+              en: 'Explore Tafsir Surah As-Sajdah (32:1–30) — Classical Exegesis, Word-by-Word Study, Hadiths & Bilingual Audio Recitation.',
+              id: 'Pelajari Tafsir Surah As-Sajdah (32:1–30) — Tafsir Klasik, Kata per Kata, Hadis Shahih & Audio Terjemahan.',
+              ms: 'Hayati Tafsir Surah As-Sajdah (32:1–30) — Tafsir Klasik, Kata demi Kata, Hadis Sahih & Bacaan Audio.',
+            })}
+          />
           <button
             type="button"
             onClick={onOpenNotes}

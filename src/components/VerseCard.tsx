@@ -3,6 +3,7 @@ import {
   Bookmark,
   ChevronDown,
   ChevronUp,
+  GraduationCap,
   NotebookPen,
   Pause,
   Play,
@@ -13,15 +14,18 @@ import {
   TafsirLens,
   VerseStudyNote,
 } from '../types/tafsir';
-import { THEMATIC_SECTIONS } from '../data';
+import { getWordByWordTokens, THEMATIC_SECTIONS } from '../data';
 import { pickText } from '../utils/i18n';
+import { ShareButton } from './ShareButton';
 
 interface VerseCardProps {
   ayah: AyahTafsir;
   language: AppLanguage;
   tafsirLens: TafsirLens;
   showTransliteration: boolean;
+  wordByWord: boolean;
   arabicSize: 'md' | 'lg' | 'xl';
+  translationFontSize: number;
   isActive: boolean;
   isCurrentlyPlaying: boolean;
   studyNote?: VerseStudyNote;
@@ -30,6 +34,7 @@ interface VerseCardProps {
   onToggleBookmark: (ayahNumber: number) => void;
   onSaveNote: (ayahNumber: number, noteText: string) => void;
   onJumpToSajdahGuide: () => void;
+  onOpenQuiz: (ayahNumber: number) => void;
 }
 
 export const VerseCard: React.FC<VerseCardProps> = ({
@@ -37,7 +42,9 @@ export const VerseCard: React.FC<VerseCardProps> = ({
   language,
   tafsirLens,
   showTransliteration,
+  wordByWord,
   arabicSize,
+  translationFontSize,
   isActive,
   isCurrentlyPlaying,
   studyNote,
@@ -46,6 +53,7 @@ export const VerseCard: React.FC<VerseCardProps> = ({
   onToggleBookmark,
   onSaveNote,
   onJumpToSajdahGuide,
+  onOpenQuiz,
 }) => {
   const [expandedTafsir, setExpandedTafsir] = useState(
     ayah.number === 1 || ayah.number === 15
@@ -59,6 +67,31 @@ export const VerseCard: React.FC<VerseCardProps> = ({
     md: 'text-2xl sm:text-[1.75rem] leading-[2.15]',
     lg: 'text-3xl sm:text-[2.1rem] leading-[2.2]',
     xl: 'text-3xl sm:text-[2.45rem] leading-[2.25]',
+  }[arabicSize];
+
+  const translationSizeClass =
+    (
+      {
+        14: 'text-[14px]',
+        15: 'text-[15px]',
+        16: 'text-[16px]',
+        17: 'text-[17px]',
+        18: 'text-[18px]',
+        19: 'text-[19px]',
+        20: 'text-[20px]',
+        21: 'text-[21px]',
+        22: 'text-[22px]',
+        23: 'text-[23px]',
+        24: 'text-[24px]',
+      } as Record<number, string>
+    )[translationFontSize] ?? 'text-[17px]';
+
+  const wordTokens = wordByWord ? getWordByWordTokens(ayah) : [];
+
+  const wordArabicSizeClasses = {
+    md: 'text-xl sm:text-2xl leading-[1.9]',
+    lg: 'text-2xl sm:text-[1.85rem] leading-[1.95]',
+    xl: 'text-3xl sm:text-[2.15rem] leading-[2]',
   }[arabicSize];
 
   const handleOpenNoteEditor = () => {
@@ -201,6 +234,42 @@ export const VerseCard: React.FC<VerseCardProps> = ({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
+              onFocusAyah(ayah.number);
+              onOpenQuiz(ayah.number);
+            }}
+            aria-label={pickText(language, {
+              en: `Quick quiz for ayah ${ayah.number}`,
+              id: `Kuis singkat untuk ayat ${ayah.number}`,
+              ms: `Kuiz ringkas untuk ayat ${ayah.number}`,
+            })}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#57534E] dark:text-[#A8A29E] hover:bg-[#EAE4D7] dark:hover:bg-[#23201C] transition-colors whitespace-nowrap shrink-0"
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>
+              {pickText(language, {
+                en: 'Quiz',
+                id: 'Kuis',
+                ms: 'Kuiz',
+              })}
+            </span>
+          </button>
+
+          <ShareButton
+            language={language}
+            variant="card"
+            ayahNumber={ayah.number}
+            title={
+              language === 'en'
+                ? `Surah As-Sajdah · Ayah 32:${ayah.number}`
+                : `Surah As-Sajdah · Ayat 32:${ayah.number}`
+            }
+            shareText={`${ayah.arabic}\n\n“${ayah.translation[language]}” — Qur’an 32:${ayah.number}`}
+          />
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
               onToggleBookmark(ayah.number);
             }}
             aria-label={
@@ -238,14 +307,73 @@ export const VerseCard: React.FC<VerseCardProps> = ({
         </div>
       </div>
 
-      {/* Arabic Calligraphy */}
-      <p
-        dir="rtl"
-        lang="ar"
-        className={`mt-6 font-arabic text-right text-[#1C1917] dark:text-[#F5F2EB] tracking-normal ${arabicSizeClasses}`}
-      >
-        {ayah.arabic}
-      </p>
+      {/* Arabic Calligraphy or Word-by-Word Mode */}
+      {wordByWord ? (
+        <div className="mt-6" aria-label="Word-by-word Arabic and literal translation">
+          <div dir="rtl" className="flex flex-wrap items-stretch gap-2.5 sm:gap-3">
+            {wordTokens.map((token, idx) => {
+              const rootMeaning = token.rootInfo
+                ? language === 'en'
+                  ? token.rootInfo.meaningEn
+                  : language === 'ms'
+                    ? token.rootInfo.meaningMs
+                    : token.rootInfo.meaningId
+                : undefined;
+
+              return (
+                <div
+                  key={`${ayah.number}-wbw-${idx}`}
+                  title={
+                    token.rootInfo
+                      ? `${token.rootInfo.transliteration} (${token.rootInfo.root}) — ${rootMeaning}`
+                      : token.literal[language]
+                  }
+                  className={`inline-flex flex-col items-center justify-between text-center px-3 py-2.5 rounded-lg border transition-colors min-w-[4.75rem] max-w-[11.5rem] ${
+                    token.rootInfo
+                      ? 'border-[#D4C3A3] dark:border-[#4A3D28] bg-[#F5EFE2] dark:bg-[#1E1A14]'
+                      : 'border-[#E5DFD3] dark:border-[#2C2824] bg-[#FBF9F5] dark:bg-[#161411]'
+                  }`}
+                >
+                  <span
+                    lang="ar"
+                    className={`font-arabic text-[#1C1917] dark:text-[#F5F2EB] ${wordArabicSizeClasses}`}
+                  >
+                    {token.arabic}
+                  </span>
+
+                  <div dir="ltr" className="mt-1.5 pt-1.5 border-t border-[#E5DFD3]/80 dark:border-[#2C2824] w-full space-y-0.5">
+                    {showTransliteration && token.rootInfo?.transliteration && (
+                      <p className="text-[11px] italic text-[#78716C] dark:text-[#A8A29E] leading-tight">
+                        {token.rootInfo.transliteration}
+                      </p>
+                    )}
+                    <p className="text-xs leading-snug text-[#292524] dark:text-[#E7E2D8]">
+                      {token.literal[language]}
+                    </p>
+                    {token.rootInfo && (
+                      <p
+                        dir="rtl"
+                        lang="ar"
+                        className="font-arabic text-[11px] text-[#78350F] dark:text-[#D4AF37] pt-0.5"
+                      >
+                        {token.rootInfo.root}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <p
+          dir="rtl"
+          lang="ar"
+          className={`mt-6 font-arabic text-right text-[#1C1917] dark:text-[#F5F2EB] tracking-normal ${arabicSizeClasses}`}
+        >
+          {ayah.arabic}
+        </p>
+      )}
 
       {/* Optional Transliteration */}
       {showTransliteration && (
@@ -255,7 +383,9 @@ export const VerseCard: React.FC<VerseCardProps> = ({
       )}
 
       {/* Translation */}
-      <p className="mt-4 text-base sm:text-[17px] leading-[1.7] text-[#292524] dark:text-[#E7E2D8] max-w-[68ch]">
+      <p
+        className={`mt-4 ${translationSizeClass} leading-[1.7] text-[#292524] dark:text-[#E7E2D8] max-w-[68ch] transition-[font-size] duration-150`}
+      >
         {ayah.translation[language]}
       </p>
 
